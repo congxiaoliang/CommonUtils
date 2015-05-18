@@ -17,7 +17,7 @@ public class ActivityUtils {
     private static ActivityUtils sActivityUtils = null;
     private static Context sContext = null;
 
-    public static ActivityUtils getInstance(Context ctx) {
+    public static synchronized ActivityUtils getInstance(Context ctx) {
         if (null == sActivityUtils) {
             sActivityUtils = new ActivityUtils();
         }

@@ -35,9 +35,8 @@ public class FileUtils {
         }
         File outFile = new File(dir, fileName);
         OutputStreamWriter outWriter = null;
-        FileOutputStream fos = null;
         try {
-            fos = new FileOutputStream(outFile);
+            FileOutputStream fos = new FileOutputStream(outFile);
             outWriter = new OutputStreamWriter(fos, "UTF-8");
             outWriter.write(msg);
             outWriter.flush();
@@ -46,8 +45,8 @@ public class FileUtils {
             if (DEBUG) Log.e(TAG, "write-exception, e:" + e);
             return false;
         } finally {
+            // outWriter close时会调用FileOutputStream的close。
             close(outWriter);
-            close(fos);
         }
     }
 
@@ -58,8 +57,6 @@ public class FileUtils {
      * @return file's content, saved to StringBuffer
      */
     public static StringBuffer read(String filePath, String fileName){
-        InputStreamReader isr = null;
-        FileInputStream fis = null;
         BufferedReader bufferedReader = null;
         StringBuffer sb = null;
         try {
@@ -67,11 +64,10 @@ public class FileUtils {
             File file = new File(filePath, fileName);
 
             if(file.isFile() && file.exists()) { //判断文件是否存在
-                fis = new FileInputStream(file);
-                isr = new InputStreamReader(fis, encoding);
+                FileInputStream fis = new FileInputStream(file);
+                InputStreamReader isr = new InputStreamReader(fis, encoding);
                 bufferedReader = new BufferedReader(isr);
                 String lineTxt = null;
-
                 while((lineTxt = bufferedReader.readLine()) != null){
                     if (null == sb) {
                         sb = new StringBuffer();
@@ -91,8 +87,9 @@ public class FileUtils {
 
         } finally {
             close(bufferedReader);
-            close(isr);
-            close(fis);
+            // bufferedReader close时会调用下面两个close。
+//            close(isr);
+//            close(fis);
         }
         return sb;
     }

@@ -20,7 +20,6 @@ public class FileUtils {
     private static final String TAG = "FileUtils";
     private static boolean DEBUG = BuildConfig.DEBUG;
 
-
     /**
      * 写文件
      * @param filePath
@@ -78,18 +77,16 @@ public class FileUtils {
 
             }
         } catch (FileNotFoundException e) {
-
+            if (DEBUG) Log.e(TAG, "read-exception, e:" + e);
         } catch (UnsupportedEncodingException e) {
-
+            if (DEBUG) Log.e(TAG, "read-exception, e:" + e);
         } catch (IOException e) {
-
+            if (DEBUG) Log.e(TAG, "read-exception, e:" + e);
         } catch (Exception e) {
-
+            if (DEBUG) Log.e(TAG, "read-exception, e:" + e);
         } finally {
+            // bufferedReader close时会调InputStreamReader的close
             close(bufferedReader);
-            // bufferedReader close时会调用下面两个close。
-//            close(isr);
-//            close(fis);
         }
         return sb;
     }

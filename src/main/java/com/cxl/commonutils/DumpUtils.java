@@ -14,7 +14,7 @@ public class DumpUtils {
     private static boolean DEBUG = BuildConfig.DEBUG;
 
     /**
-     * 执行adb or shell命令等。
+     * 执行adb or shell命令等---未被调用过。
      * ---dumpsys相关命令需要DUMP permission，权限只有系统应用才能申请，第三方app无法执行dumpsys命令
      * @param command
      * @param sb

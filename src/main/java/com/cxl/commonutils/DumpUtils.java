@@ -11,7 +11,7 @@ import java.io.InputStreamReader;
  */
 public class DumpUtils {
     private static final String TAG = "DumpUtils";
-    private static boolean DEBUG = BuildConfig.DEBUG;
+    private static boolean DEBUG = ConfigFeature.DEBUG;
 
     /**
      * 执行adb or shell命令等---未被调用过。

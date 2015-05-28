@@ -9,6 +9,7 @@ import android.os.Build;
 import android.util.Log;
 
 import com.cxl.commonutils.BuildConfig;
+import com.cxl.commonutils.ConfigFeature;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -17,7 +18,7 @@ import java.lang.reflect.Method;
  * AppOpsManager权限检查工具类
  */
 public class AppOpsManagerCompat {
-    private static final boolean DEBUG = BuildConfig.DEBUG;
+    private static final boolean DEBUG = ConfigFeature.DEBUG;
     private static final String TAG = "AppOpsManagerCompat";
 
     /**

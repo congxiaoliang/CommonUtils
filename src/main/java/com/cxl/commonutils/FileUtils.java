@@ -18,7 +18,7 @@ import java.io.UnsupportedEncodingException;
  */
 public class FileUtils {
     private static final String TAG = "FileUtils";
-    private static boolean DEBUG = BuildConfig.DEBUG;
+    private static boolean DEBUG = ConfigFeature.DEBUG;
 
     /**
      * 写文件

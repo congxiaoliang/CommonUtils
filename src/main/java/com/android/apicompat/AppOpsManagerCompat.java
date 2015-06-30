@@ -48,6 +48,7 @@ public class AppOpsManagerCompat {
             if (null != sAppOpsManager) {
                 sCheckOpMethod = sAppOpsManager.getClass().getMethod("checkOpNoThrow",
                         new Class[]{int.class, int.class, String.class});
+                sHaveInitOpsMethod = true;
             }
         } catch (NoSuchMethodException e) {
             if (DEBUG) Log.w(TAG, "Unexpected excetion: ", e);
@@ -99,13 +100,9 @@ public class AppOpsManagerCompat {
      */
     @TargetApi(Build.VERSION_CODES.KITKAT)
     private static boolean isSupportOps() {
-        if (-1 == sCheckSupportOps) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                sCheckSupportOps = 1;
-            } else {
-                sCheckSupportOps = 0;
-            }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            return true;
         }
-        return (1 == sCheckSupportOps);
+        return false;
     }
 }

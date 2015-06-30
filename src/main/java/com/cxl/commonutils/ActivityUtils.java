@@ -30,17 +30,22 @@ public class ActivityUtils {
     public static final int FLAG_DEFAULT = 0;
     public static final int FLAG_SUCCESS = 1;
 
-
-
-    private static ActivityUtils sActivityUtils = null;
-    private static Context sContext = null;
-
-    public static synchronized ActivityUtils getInstance(Context ctx) {
-        if (null == sActivityUtils) {
-            sActivityUtils = new ActivityUtils();
+    /**
+     * 获取版本号
+     * @param pkgName
+     * @return Instance of PackageInfo or null
+     */
+    private static PackageInfo getPkgInfo(Context ctx, String pkgName) {
+        try {
+            PackageManager manager = ctx.getPackageManager();
+            PackageInfo info = manager.getPackageInfo(pkgName, 0);
+            return info;
+        } catch (PackageManager.NameNotFoundException e) {
+            if (DEBUG) Log.w(TAG, "getPkgInfo-NameNotFoundException:" + e);
+        } catch (Exception e) {
+            if (DEBUG) Log.w(TAG, "getPkgInfo-Exception:" + e);
         }
-        sContext = ctx;
-        return sActivityUtils;
+        return null;
     }
 
     /**
@@ -48,89 +53,35 @@ public class ActivityUtils {
      * @param pkgName
      * @return 当前应用的版本号, null或格式：versionName | versionCode.
      */
-    public String getAppVersion(String pkgName) {
+    public static String getAppVersion(Context ctx, String pkgName) {
         String versionInfo = null;
         if (null == pkgName) {
             return versionInfo;
         }
-        try {
-            PackageManager manager = sContext.getPackageManager();
-            PackageInfo info = manager.getPackageInfo(pkgName, 0);
-            if (null == info) {
-                return versionInfo;
-            }
-            String versionName = info.versionName;
-            int versionCode = info.versionCode;
-            versionInfo = versionName + " | " + versionCode;
-        } catch (PackageManager.NameNotFoundException e) {
-            // not found
-            if (DEBUG) Log.e(TAG, "@@@getAppVersion-NameNotFoundException:" + e);
-        } catch (Exception e) {
-            // not found
-            if (DEBUG) Log.e(TAG, "@@@getAppVersion-Exception:" + e);
+        PackageInfo info = getPkgInfo(ctx, pkgName);
+        if (null == info) {
+            return versionInfo;
         }
+        String versionName = info.versionName;
+        int versionCode = info.versionCode;
+        versionInfo = versionName + " | " + versionCode;
         return versionInfo;
     }
 
-    /**
-     * 通过包名获取主Activity的Intent，主要用于获取主Activity名字
-     * @param pkgName
-     * @return Intent
-     */
-    public Intent getMainActivityIntent(String pkgName) {
-//        PackageManager manager = sContext.getPackageManager();
-//        Intent it = manager.getLaunchIntentForPackage(pkgName);
-//        return it;
-
-        return getLaunchIntentForPackage(pkgName);
-    }
-
-    /**
-     * 通过包名获取主Activity的Intent，主要用于获取主Activity名字, 同Framework
-     * PackageManager.getLaunchIntentForPackage()
-     * @param packageName
-     * @return Intent
-     */
-    private Intent getLaunchIntentForPackage(String packageName) {
-
-        // 通过包名获取此APP详细信息，包括Activities、services、versioncode、name等等
-        PackageManager manager = sContext.getPackageManager();
-
-        // First see if the package has an INFO activity; the existence of
-        // such an activity is implied to be the desired front-door for the
-        // overall package (such as if it has multiple launcher entries).
-        Intent intentToResolve = new Intent(Intent.ACTION_MAIN);
-        intentToResolve.addCategory(Intent.CATEGORY_INFO);
-        intentToResolve.setPackage(packageName);
-        List<ResolveInfo> ris = manager.queryIntentActivities(intentToResolve, 0);
-
-        // Otherwise, try to find a main launcher activity.
-        if (ris == null || ris.size() <= 0) {
-            // reuse the intent instance
-            intentToResolve.removeCategory(Intent.CATEGORY_INFO);
-            intentToResolve.addCategory(Intent.CATEGORY_LAUNCHER);
-            intentToResolve.setPackage(packageName);
-            ris = manager.queryIntentActivities(intentToResolve, 0);
-        }
-        if (ris == null || ris.size() <= 0) {
-            return null;
-        }
-        Intent intent = new Intent(intentToResolve);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.setClassName(ris.get(0).activityInfo.packageName,
-                ris.get(0).activityInfo.name);
-        return intent;
-    }
-
-    public void openInstalledDetail(String pkgName) {
+    public static void openInstalledDetail(Context ctx, String pkgName) {
         Intent intent = getAppDetailsIntent(pkgName);
-        if (isActivityAvailable(intent)) {
+        if (isActivityAvailable(ctx, intent)) {
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            sContext.startActivity(intent);
+            ctx.startActivity(intent);
         }
     }
 
-    public Intent getAppDetailsIntent(String pkgName) {
+    private static boolean isActivityAvailable(Context ctx, Intent intent) {
+        List<ResolveInfo> list = ctx.getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
+        return list != null && list.size() > 0;
+    }
+
+    private static Intent getAppDetailsIntent(String pkgName) {
         Intent intent;
         if (Build.VERSION.SDK_INT >= 9) {
             intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
@@ -153,13 +104,14 @@ public class ActivityUtils {
      * @param pkgName
      * @return FLAG_*
      */
-    public int startMainActivity(String pkgName) {
-        Intent it = getMainActivityIntent(pkgName);
+    public static int startMainActivity(Context ctx, String pkgName) {
+        PackageManager manager = ctx.getPackageManager();
+        Intent it = manager.getLaunchIntentForPackage(pkgName);
         if (null == it) {
             return FLAG_DEFAULT;
         }
         it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        return startActivity(it);
+        return startActivity(ctx, it);
     }
 
     /**
@@ -167,13 +119,13 @@ public class ActivityUtils {
      * @param intent
      * @return FLAG_*
      */
-    public int startActivity(Intent intent) {
+    public static int startActivity(Context ctx, Intent intent) {
         try {
             if (null == intent) {
                 return FLAG_DEFAULT;
             }
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            sContext.startActivity(intent);
+            ctx.startActivity(intent);
             return FLAG_SUCCESS;
         } catch (ActivityNotFoundException e) {
             if (DEBUG) Log.w(TAG, "@@@startActivity e:" + e);
@@ -187,21 +139,16 @@ public class ActivityUtils {
         }
     }
 
-    public boolean isActivityAvailable(Intent intent) {
-        List<ResolveInfo> list = sContext.getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
-        return list != null && list.size() > 0;
-    }
-
     /**
      * 判断Activity是否存在。---未被调用用过。
      * @param pkgName
      * @param activityName
      * @return 当前应用的版本号, 格式：versionName | versionCode
      */
-    public boolean isActivityExsist(String pkgName, String activityName) {
+    public static boolean isActivityExsist(Context ctx, String pkgName, String activityName) {
         Intent intent = new Intent();
         intent.setClassName(pkgName, activityName);
-        PackageManager manager = sContext.getPackageManager();
+        PackageManager manager = ctx.getPackageManager();
         ComponentName name = intent.resolveActivity(manager);
         if (null == name) {
             // 说明系统中不存在这个activity
